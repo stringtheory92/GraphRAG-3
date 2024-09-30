@@ -18,6 +18,7 @@ logger.add("transcript_processing.log", format="{time} {level} {message}", level
 
 def call_openai_for_qa_pair(title, full_transcript):
     logger.debug(f"Calling OpenAI API for transcript: {title[:50]}...")
+    logger.info(f"Transcript: {full_transcript}")
 
     # Define the prompt
     prompt = f"""
@@ -49,6 +50,7 @@ def call_openai_for_qa_pair(title, full_transcript):
             max_tokens=1500
         )
         logger.debug("Successfully received response from OpenAI.")
+        logger.info(f"response: {response}")
     except Exception as e:
         logger.error(f"Error in OpenAI API call: {e}")
         raise e

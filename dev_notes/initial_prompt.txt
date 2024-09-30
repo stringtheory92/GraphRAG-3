@@ -1,0 +1,4 @@
+I would like an app with a simple, sleek and modern chat interface in the frontend, and the backend should have sing in and sign up via supabase. The chat interface should initially recieve a pr
+ompt from the user, which is processed by claude haiku combined with a RAG full of documents I will provide. The documents will contain AMA video transcripts from you tube, where an influencer rea
+ds community questions aloud and then answers them. The goal is that the llm using this RAG can retrieve relevant answers to the user's question in the user prompt and return the aggregate of that
+  influencer's responses to that question within the documents. It should not make up any information at all, and only return the responses to the users' questions based on the documents provided 

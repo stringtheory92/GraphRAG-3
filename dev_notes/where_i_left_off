@@ -1,0 +1,226 @@
+1 Integrate rag with Llama Index
+2 Do Knowledge graph according to this https://neo4j.com/developer-blog/graphrag-llm-knowledge-graph-builder/
+
+OR THIS: 
+6. Adding Data to Neo4j (For the First Time)
+If you need to populate your Neo4j database with initial topics and responses:
+
+Open Neo4j Browser.
+Use Cypher queries to insert nodes and relationships:
+
+This query creates a Topic node (carnivore diet), a Response node with a text, and a relationship between them. You can similarly add other topics, responses, and relationships.
+
+7. Using Neo4j GenAI for RAG
+   Now that you’ve integrated Neo4j for RAG, you can combine the retrieval of structured data from Neo4j and generation from the LLM:
+
+Neo4j handles retrieval from a well-organized knowledge graph.
+LLM generates answers based on retrieved context, ensuring the generated response is relevant to the user’s query.
+This setup allows you to offer accurate, context-aware responses based on the content creator's previous answers to similar questions.
+
+Next Steps
+Fine-tuning queries: Optimize your Cypher queries to extract the most relevant data.
+Scaling: Ensure your Neo4j instance can scale as the amount of content grows.
+LLM improvements: You can experiment with prompt tuning or switching between different LLMs to improve the quality of generated responses.
+User feedback: Allow users to rate the generated responses to continuously improve the retrieval and generation process.
+This setup of GraphRAG with Neo4j and LLM integration should give you the ability to serve highly relevant and accurate answers based on previous content responses.
+
+From Antonio:
+
+# Possible Approach
+
+1. Start with basic fixed-size chunking
+
+- Develop a simple tokenization process
+- Create chunks of a specified token length (e.g. 512 tokens)
+- Implement basic overlap functionality
+
+2. Develop optimized content-aware chunking
+
+- Implement efficient structural analysis (paragraphs, line breaks)
+- Create basic topic segmentation algorithm
+- Develop a size-adjustment mechanism to balance chunk sizes
+
+3. Implement Preprocessing
+
+- Develop text normalization functions
+- Create efficient handling of long transcripts
+
+4. Create Embedding Generation process
+
+- Choose a lightweight embedding model suitable for your hardware
+- Implement batched embedding generation
+
+5. Set up Vector Store Ingestion
+
+- Develop adapters for LlamaIndex and Neo4j
+- Implement efficient ingestion processes
+
+## Possible Implementation
+
+### Custom Text Splitter
+
+```python
+from llama_index.text_splitter import TextSplitter
+from typing import List
+
+class ContentAwareTextSplitter(TextSplitter):
+    def __init__(self, target_chunk_size: int = 512, overlap: float = 0.1):
+        super().__init__(chunk_size=target_chunk_size, chunk_overlap=int(target_chunk_size * overlap))
+        self.target_chunk_size = target_chunk_size
+        self.overlap = overlap
+
+    def split_text(self, text: str) -> List[str]:
+        # Implementation of our custom splitting logic
+        chunks = self._structural_chunking(text)
+        chunks = self._semantic_chunking(chunks)
+        chunks = self._size_based_chunking(chunks)
+        chunks = self._implement_overlap(chunks)
+        chunks = self._preserve_special_content(chunks)
+        return chunks
+
+    # Helper methods for each chunking step
+    def _structural_chunking(self, text: str) -> List[str]:
+        # Split by paragraphs and speaker changes
+        # ...
+
+    def _semantic_chunking(self, chunks: List[str]) -> List[str]:
+        # Implement TextTiling or similar algorithm
+        # ...
+
+    def _size_based_chunking(self, chunks: List[str]) -> List[str]:
+        # Adjust chunk sizes to meet target size
+        # ...
+
+    def _implement_overlap(self, chunks: List[str]) -> List[str]:
+        # Add overlap between chunks
+        # ...
+
+    def _preserve_special_content(self, chunks: List[str]) -> List[str]:
+        # Ensure important content is preserved
+        # ...
+```
+
+### Chunking Logic
+
+```python
+import re
+from nltk.tokenize import sent_tokenize
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+class ContentAwareTextSplitter(TextSplitter):
+    # ... (previous code)
+
+    def _structural_chunking(self, text: str) -> List[str]:
+        # Split by paragraphs and speaker changes
+        paragraphs = re.split(r'\n\s*\n', text)
+        chunks = []
+        for para in paragraphs:
+            # Split by speaker changes (assuming format "Speaker: ")
+            speaker_chunks = re.split(r'([A-Za-z]+:\s)', para)
+            chunks.extend([chunk.strip() for chunk in speaker_chunks if chunk.strip()])
+        return chunks
+
+    def _semantic_chunking(self, chunks: List[str]) -> List[str]:
+        # Simple topic segmentation using cosine similarity
+        vectorizer = CountVectorizer().fit(chunks)
+        vectors = vectorizer.transform(chunks).toarray()
+        similarities = cosine_similarity(vectors)
+
+        new_chunks = []
+        current_chunk = chunks[0]
+        for i in range(1, len(chunks)):
+            if similarities[i-1][i] < 0.5:  # Threshold for topic change
+                new_chunks.append(current_chunk)
+                current_chunk = chunks[i]
+            else:
+                current_chunk += " " + chunks[i]
+        new_chunks.append(current_chunk)
+        return new_chunks
+
+    def _size_based_chunking(self, chunks: List[str]) -> List[str]:
+        new_chunks = []
+        for chunk in chunks:
+            if len(chunk.split()) <= self.target_chunk_size:
+                new_chunks.append(chunk)
+            else:
+                sentences = sent_tokenize(chunk)
+                current_chunk = ""
+                for sentence in sentences:
+                    if len((current_chunk + " " + sentence).split()) <= self.target_chunk_size:
+                        current_chunk += " " + sentence
+                    else:
+                        if current_chunk:
+                            new_chunks.append(current_chunk.strip())
+                        current_chunk = sentence
+                if current_chunk:
+                    new_chunks.append(current_chunk.strip())
+        return new_chunks
+
+    def _implement_overlap(self, chunks: List[str]) -> List[str]:
+        overlap_size = int(self.target_chunk_size * self.overlap)
+        new_chunks = []
+        for i, chunk in enumerate(chunks):
+            if i > 0:
+                prev_chunk = chunks[i-1]
+                overlap = " ".join(prev_chunk.split()[-overlap_size:])
+                chunk = overlap + " " + chunk
+            new_chunks.append(chunk)
+        return new_chunks
+
+    def _preserve_special_content(self, chunks: List[str]) -> List[str]:
+        important_phrases = ["The key point is", "In conclusion", "To summarize"]
+        new_chunks = []
+        for chunk in chunks:
+            sentences = sent_tokenize(chunk)
+            preserved_chunk = ""
+            for sentence in sentences:
+                if any(phrase in sentence for phrase in important_phrases):
+                    if preserved_chunk:
+                        new_chunks.append(preserved_chunk.strip())
+                        preserved_chunk = ""
+                    new_chunks.append(sentence)
+                else:
+                    preserved_chunk += " " + sentence
+            if preserved_chunk:
+                new_chunks.append(preserved_chunk.strip())
+        return new_chunks
+```
+
+### Use With LlamaIndex
+
+```python
+from llama_index import Document, VectorStoreIndex
+from llama_index.node_parser import SimpleNodeParser
+
+# Create our custom text splitter
+content_aware_splitter = ContentAwareTextSplitter(target_chunk_size=512, overlap=0.1)
+
+# Create a node parser with our custom splitter
+node_parser = SimpleNodeParser.from_defaults(
+    text_splitter=content_aware_splitter
+)
+
+# Create a document
+document = Document(text="Your long transcript text here...")
+
+# Parse the document into nodes
+nodes = node_parser.get_nodes_from_documents([document])
+
+# Create the index
+index = VectorStoreIndex(nodes)
+```
+
+
+9/16/24
+Future Setup:
+1. Neo4j: Store relationships, metadata (e.g., tags, topics, dates), and references (e.g., document IDs or external storage references for the actual text).
+2. Vector Database: Store and search embeddings for similarity-based retrieval.
+3. External Storage - Google Drive (adamkabak@gmail.com): stores ["body"]["text"] fields. neo4j body text stores a link to the drive doc
+    
+
+Google Drive:
+GCP project: aigency-test
+All controls in the cloud console under Enabled API's & Services
+Local credentials in my credentials folder on desktop
+add test users in the console to grant access to others (Antonio)

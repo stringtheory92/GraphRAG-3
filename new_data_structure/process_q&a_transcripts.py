@@ -22,26 +22,80 @@ def call_openai_for_qa_pair(title, full_transcript):
 
     # Define the prompt
     prompt = f"""
-    The transcript below has questions being read by a speaker, followed by the speaker's answer. 
-    Only return the first question/answer pair from the transcript, and do not alter, punctuate, summarize, or correct the text. 
-    Maintain the exact format and text as provided in the "body" field of the JSON output.
-    
-    Transcript:
-    {full_transcript}
-    
-    Return the output in this JSON format:
-    [
-    {{
-    "title": "{title}",
-    "body": "entire question and answer pair text here"
-    }}
-    ]
+        The following transcript contains questions being read by a speaker, followed by the speaker's answer. Your task is to return the first complete question and answer pair from the transcript, just as presented in the transcript. Follow these guidelines to ensure the response is valid and correctly formatted:
+
+        1. **Text Output Only**: Return the result as pure text, with no extra text, explanations, or formatting outside of the content. The text content should follow these rules:
+        
+       
+            - include the entire questions and answer as it appears in the transcript, without any modifications
+           
+
+        2. **No Code Blocks**: Do not enclose the text in markdown-style code blocks. Just return raw text.
+
+        3. **No Modifications**: Do not alter, punctuate, summarize, or correct the text. The text should be returned exactly as it appears in the transcript, even if it contains grammatical errors, lacks punctuation, or appears disorganized.
+
+
+        Return only the text with no additional explanation or formatting.
+
+        ## Transcript Data:
+        transcript: {full_transcript}
+
     """
+    # prompt = f"""
+    #     The following transcript contains questions being read by a speaker, followed by the speaker's answer. Your task is to return the first complete question and answer pair from the transcript, formatted in a precise JSON structure. Follow these guidelines to ensure the response is valid and correctly formatted:
+
+    #     1. **JSON Output Only**: Return the result as pure JSON, with no extra text, explanations, or formatting outside of the JSON structure. The JSON object should follow this exact format:
+        
+       
+    #         "title": "The title of the entire transcript",
+    #         "body": "The entire question and answer text as it appears in the transcript, without any modifications."
+           
+
+    #     2. **No Code Blocks**: Do not enclose the JSON in markdown-style code blocks. Just return raw JSON.
+
+    #     3. **No Modifications**: Do not alter, punctuate, summarize, or correct the text in the "body" field. The text should be returned exactly as it appears in the transcript, even if it contains grammatical errors, lacks punctuation, or appears disorganized.
+
+    #     4. **Quotation Marks in the Transcript**: If the text in the transcript contains quotation marks, ensure they are properly escaped to maintain valid JSON formatting. For example:
+    #     - Incorrect: "He said, "hello."" (this would break the JSON format)
+    #     - Correct: "He said, \"hello.\""
+
+    #     5. **Consistent Formatting**: The response must be well-formed, valid JSON. Ensure that:
+    #     - Keys are enclosed in double quotes.
+    #     - Values are properly enclosed in double quotes if they are strings.
+    #     - The JSON structure is valid, an object within a list, and can be parsed without errors.
+
+    #     Return only the JSON object with no additional explanation or formatting.
+
+    #     ## Transcript Data:
+    #     title: {title}
+    #     transcript: {full_transcript}
+
+    # """
+    # prompt = f"""
+    # The transcript below has questions being read by a speaker, followed by the speaker's answer. 
+    # Only return the first question/answer pair from the transcript, and do not alter, punctuate, summarize, or correct the text. 
+    # Maintain the exact format and text as provided in the "body" field of the JSON output.
+    # Do not enclose the json in a code block. Just provide the json.
+    # DO NOT ALTER THE ORIGINAL TEXT IN ANY WAY. DO NOT CORRECT TYPOS, ADD PUNCTUATION, OR ADD CLARIFYING CONTEXT. PRESERVE THE ORIGINAL TEXT COMPLETELY.
+    # AGAIN, NO PUNCTUATION
+    # AGAIN, PLEASE RETURN VALID JSON
+    
+    # Transcript:
+    # {full_transcript}
+    
+    # Return the output in this JSON format:
+    # [
+    # {{
+    # "title": "{title}",
+    # "body": "entire question and answer pair text here"
+    # }}
+    # ]
+    # """
 
     # Call OpenAI API with the prompt
     try:
         response = client.chat.completions.create(
-            model="gpt-4-mini",  # Assuming you are using GPT-4 mini
+            model="gpt-4o-mini",  # Assuming you are using GPT-4 mini
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt}
@@ -57,7 +111,12 @@ def call_openai_for_qa_pair(title, full_transcript):
 
     # Extract the response
     output = response.choices[0].message.content.strip()
-    return output
+
+    data= [{
+        "title": title,
+        "body": output
+    }]
+    return data
 
 def append_to_file(data, filename="1_processed.json"):
     logger.debug(f"Appending processed chunk to file: {filename}")
@@ -86,26 +145,35 @@ def process_transcript(title, full_transcript):
     while remaining_transcript:
         try:
             # Call OpenAI for the next Q&A pair
-            output = call_openai_for_qa_pair(title, remaining_transcript)
+            data = call_openai_for_qa_pair(title, remaining_transcript)
         except Exception as e:
             logger.error(f"Stopping processing due to error: {e}")
             break
         
-        # Extract the processed Q&A pair
-        try:
-            processed_chunk = json.loads(output)[0]['body']
-        except (json.JSONDecodeError, KeyError, IndexError) as e:
-            logger.error(f"Error in processing the response: {e}")
-            break
-        
-        # Create a data object with title and body
-        data = {"title": title, "body": processed_chunk}
+        # # Extract the processed Q&A pair
+        # try:
+        #     processed_chunk = json.loads(output)[0]['body']
+        # except (json.JSONDecodeError, KeyError, IndexError) as e:
+        #     logger.error(f"Error in processing the response: {e}")
+        #     break
+
+        # # Create a data object with title and body
+        # data = {"title": title, "body": processed_chunk}
         
         # Write the new Q&A pair to the file immediately
         append_to_file(data)
 
-        # Remove the processed chunk from the transcript
-        remaining_transcript = remaining_transcript.replace(processed_chunk, "", 1).strip()
+        # Find the position of the processed chunk in the remaining transcript
+        processed_chunk = data[0]['body']
+        processed_chunk.replace("/", "")
+        chunk_position = remaining_transcript.find(processed_chunk[-10:])
+
+        if chunk_position == -1:
+            logger.error("Could not find the processed chunk in the remaining transcript. Stopping.")
+            break
+
+        # Update the remaining transcript by slicing off the processed part
+        remaining_transcript = remaining_transcript[chunk_position + len(processed_chunk):].strip()
 
     logger.info("Transcript processing complete.")
 
@@ -136,7 +204,7 @@ def main(json_file_path):
 if __name__ == "__main__":
     # Argument parsing using argparse
     parser = argparse.ArgumentParser(description="Process YouTube transcripts and extract Q&A pairs using OpenAI.")
-    parser.add_argument("json_file_path", type=str, help="The relative path to the JSON file containing the transcript.")
+    parser.add_argument("--json_file_path", type=str, help="The relative path to the JSON file containing the transcript.")
     
     args = parser.parse_args()
 

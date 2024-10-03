@@ -108,10 +108,10 @@ def call_openai_for_qa_pair(title, full_transcript):
     # Extract the response
     output = response.choices[0].message.content.strip()
 
-    data= [{
+    data= {
         "title": title,
         "body": output
-    }]
+    }
     return data
 
 def append_to_file(data, filename="1_processed.json"):

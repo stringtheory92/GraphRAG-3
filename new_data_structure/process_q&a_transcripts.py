@@ -8,34 +8,30 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Set up your OpenAI API key
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY")
 )
-
-# Configure loguru logging
-logger.add("transcript_processing.log", format="{time} {level} {message}", level="DEBUG", rotation="10 MB")
 
 def call_openai_for_qa_pair(title, full_transcript):
     logger.debug(f"Calling OpenAI API for transcript: {title[:50]}...")
     logger.info(f"Transcript: {full_transcript}")
 
-    # Define the prompt
     prompt = f"""
-        The following transcript contains questions being read by a speaker, followed by the speaker's answer. Your task is to return the first complete question and answer pair from the transcript, just as presented in the transcript. Follow these guidelines to ensure the response is valid and correctly formatted:
+        The following transcript is from a video of only 1 speaker, who is a doctor. It contains questions from others being read by speaker, followed by his answer. Your task is to return the first complete question and answer pair from the transcript, just as presented in the transcript. Follow these guidelines to ensure the response is valid, complete, and correctly formatted:
 
         1. **Text Output Only**: Return the result as pure text, with no extra text, explanations, or formatting outside of the content. The text content should follow these rules:
-        
-       
             - include the entire questions and answer as it appears in the transcript, without any modifications
            
-
         2. **No Code Blocks**: Do not enclose the text in markdown-style code blocks. Just return raw text.
 
         3. **No Modifications**: Do not alter, punctuate, summarize, or correct the text. The text should be returned exactly as it appears in the transcript, even if it contains grammatical errors, lacks punctuation, or appears disorganized.
 
-
         Return only the text with no additional explanation or formatting.
+        Here are some examples of how he might transition from one question/answer to the next:
+        - "keep up the good work you're doing great and we're sort of coming down on the last sort of few uh questions um but uh yeah this is one's from Andy Hall thank you very much Andy for the very generous Super Chat it's very kind of you um in your experience how long does it take for Crohn's to go into complete remission on Carnivore I'm 52-year-old male carnivore for three months doctor started me on uh what is.. "
+        - "fixed and help your sleep acne or snoring as well and good luck with that Rick Diaz thank you very much for the Super Chat carnivore for six months down 35 pounds I'm 47 uh still high blood pressure 160 over 110 my doc wants to"
+
+        These examples don't represent the total number of ways he might transition from an answer to the next question, but it's a good indication. He often tends to thank people for super chat or super sticker before reading their questions
 
         ## Transcript Data:
         transcript: {full_transcript}
@@ -150,16 +146,6 @@ def process_transcript(title, full_transcript):
             logger.error(f"Stopping processing due to error: {e}")
             break
         
-        # # Extract the processed Q&A pair
-        # try:
-        #     processed_chunk = json.loads(output)[0]['body']
-        # except (json.JSONDecodeError, KeyError, IndexError) as e:
-        #     logger.error(f"Error in processing the response: {e}")
-        #     break
-
-        # # Create a data object with title and body
-        # data = {"title": title, "body": processed_chunk}
-        
         # Write the new Q&A pair to the file immediately
         append_to_file(data)
 
@@ -177,9 +163,8 @@ def process_transcript(title, full_transcript):
 
     logger.info("Transcript processing complete.")
 
-def main(json_file_path):
-    
 
+def main(json_file_path):
     logger.info(f"Loading transcript from file: {json_file_path}")
 
     try:
@@ -200,9 +185,9 @@ def main(json_file_path):
 
     process_transcript(title, transcript)
 
-# If running the script from the command line
+
 if __name__ == "__main__":
-    # Argument parsing using argparse
+    
     parser = argparse.ArgumentParser(description="Process YouTube transcripts and extract Q&A pairs using OpenAI.")
     parser.add_argument("--json_file_path", type=str, help="The relative path to the JSON file containing the transcript.")
     

@@ -12,7 +12,7 @@ client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY")
 )
 
-TAGS = ["Beginner","Lifestyle","Metabolic Health","Mental and Cognitive Health","Exercise and Physical Performance","Inflammation and Autoimmune Conditions","Gut Health","Nutritional Myths and Misconceptions","Fruit Sugar and Carbohydrates","Disease Prevention","Sustainability and Ethics","Ketosis and Fat Adaptation","Vitamin and Nutrient Deficiencies","Fasting","Autophagy","Cholesterol and Heart Disease","Weight Loss and Fat Loss","Cancer","Sleep and Recovery","Skin Health","Hormonal Balance","Carnivore for Children and Families","Evolutionary Nutrition","Anti-Aging and Longevity","Food Addiction","Electrolytes and Hydration","Reproductive Health","Histamine Intolerance","Food Sensitivities","Thyroid Health","Salt","Muscle Building and Protein Intake","Bone Health and Joint Pain","Sleep Apnea","Chronic Fatigue Syndrome","Vitamin D","Sunlight","Carb Cycling","Fat Protein Ratio","Dental Health","Mood Stabilization and Anxiety","Hyperinsulinemia","Sarcopenia Prevention","Osteoporosis","Liver Health","Digestive Health","Constipation and Diarrhea"]
+TAGS = ["Beginner","Dairy", "Lifestyle","Metabolic Health","Mental and Cognitive Health","Exercise and Physical Performance","Inflammation and Autoimmune Conditions","Gut Health","Nutritional Myths and Misconceptions","Fruit Sugar and Carbohydrates","Disease Prevention","Sustainability and Ethics","Ketosis and Fat Adaptation","Vitamin and Nutrient Deficiencies","Fasting","Autophagy","Cholesterol and Heart Disease","Weight Loss and Fat Loss","Cancer","Sleep and Recovery","Skin Health","Hormonal Balance","Carnivore for Children and Families","Evolutionary Nutrition","Anti-Aging and Longevity","Food Addiction","Electrolytes and Hydration","Reproductive Health","Histamine Intolerance","Food Sensitivities","Thyroid Health","Salt","Muscle Building and Protein Intake","Bone Health and Joint Pain","Sleep Apnea","Chronic Fatigue Syndrome","Vitamin D","Sunlight","Carb Cycling","Fat Protein Ratio","Dental Health","Mood Stabilization and Anxiety","Hyperinsulinemia","Sarcopenia Prevention","Osteoporosis","Liver Health","Digestive Health","Constipation and Diarrhea"]
 
 def generate_question_tags(excerpt):
     logger.debug(f"Generating question and tags for excerpt:")
@@ -121,7 +121,7 @@ def process_data(json_data, output_dir="./2_added_qt", error_log_file="error_seg
                     existing_data = json.load(f)
 
                 existing_data.append(segment)
-                
+
                 with open(output_dir, 'w') as f:
                     json.dump(existing_data, f, indent=2)
 

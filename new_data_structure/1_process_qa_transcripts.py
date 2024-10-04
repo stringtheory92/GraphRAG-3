@@ -189,7 +189,7 @@ def main(json_file_path):
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="Process YouTube transcripts and extract Q&A pairs using OpenAI.")
-    parser.add_argument("--json_file_path", type=str, help="The relative path to the JSON file containing the transcript.")
+    parser.add_argument("--json_file_path", "-f", type=str, help="The relative path to the JSON file containing the transcript.")
     
     args = parser.parse_args()
 

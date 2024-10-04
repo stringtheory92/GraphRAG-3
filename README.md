@@ -1,3 +1,13 @@
+# New Structure
+
+- `id`
+- `date`
+- `title`
+- `topics`
+- `body`
+
+# New Processing Procedure
+
 Data lives in test_transcripts
 
 To run initial processing, From root, run

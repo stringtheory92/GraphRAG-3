@@ -47,30 +47,34 @@ def delete_vector_index(driver, custom_index_name):
 
 
 
-# Create or recreate the vector index
 def create_vector_index(driver, index_name, label, embedding_property, dimensions, similarity_fn):
-    """Create a vector index with Neo4j."""
+    """Create a vector index with Neo4j using cosine similarity."""
     with driver.session() as session:
         session.run(
-            """
-            CREATE VECTOR INDEX question_vector_index IF NOT EXISTS
-                FOR (q:Question)
-                ON q.embedding
-                OPTIONS {indexConfig: {
-                `vector.dimensions`: 384, 
-                `vector.similarity_function`: 'euclidean' 
+            f"""
+            CREATE VECTOR INDEX {index_name} IF NOT EXISTS
+            FOR (n:{label})
+            ON (n.{embedding_property})
+            OPTIONS {{
+                indexConfig: {{
+                    `vector.dimensions`: {dimensions},
+                    `vector.similarity_function`: '{similarity_fn}' 
+                }}
             }}
             """
         )
         logger.info(f"Vector index '{index_name}' created successfully.")
 
+# Now pass "cosine" as the similarity function instead of "euclidean"
+create_vector_index(
+    driver=driver,
+    index_name="question_vector_index",
+    label="Question",
+    embedding_property="embedding",
+    dimensions=384,  # Adjust this based on your embedding model
+    similarity_fn="cosine"  # Change from "euclidean" to "cosine"
+)
 
-
-
-# Before creating the new vector index, delete the old one
-INDEX_NAME = "question_vector_index"
-delete_vector_index(driver, INDEX_NAME)
-create_vector_index(driver, INDEX_NAME, label="Question", embedding_property="embedding", dimensions=384, similarity_fn="euclidean")
 
 def load_json(file_path):
     """Loads the JSON file."""
@@ -141,6 +145,7 @@ def generate_embedding(text):
     return embedding
 
 
+
 def add_data_to_neo4j(question_data, service):
     with driver.session() as session:
         for index, question in enumerate(question_data):
@@ -208,60 +213,6 @@ def add_data_to_neo4j(question_data, service):
                 logger.error(f"Error processing question {index + 1}: {e}")
                 continue
 
-# def add_data_to_neo4j(question_data, service):
-#     with driver.session() as session:
-#         for index, question in enumerate(question_data):
-#             try:
-#                 logger.info(f"Processing question {index + 1}/{len(question_data)}: {question['question'][:50]}...")
-
-#                 # Add Question Node in Neo4j without the date field
-#                 result = session.run(
-#                     """
-#                     CREATE (q:Question {id: randomUUID(), title: $title, text: $text}) 
-#                     RETURN q.id AS question_id
-#                     """, title=question['title'], text=question['question']
-#                 )
-#                 question_id = result.single()['question_id']
-#                 logger.info(f"Question added with ID: {question_id}")
-                
-#                 # Proceed with processing the other fields, such as body, tags, etc.
-#                 body = question['body']
-#                 file_name = f"body_text_{index+1}"  # Using index as a placeholder for date
-#                 drive_link = upload_to_drive(service, file_name, body)
-#                 logger.info(f"Uploaded body text to Google Drive with link: {drive_link}")
-
-#                 # Add Body Node with reference to Google Drive text
-#                 session.run(
-#                     "CREATE (b:Body {id: randomUUID(), text_link: $text_link})",
-#                     text_link=drive_link
-#                 )
-#                 logger.info(f"Body added with Google Drive link: {drive_link}")
-
-#                 # Create the HAS_BODY relationship
-#                 session.run(
-#                     """
-#                     MATCH (q:Question {id: $qid}), (b:Body {text_link: $btext_link})
-#                     CREATE (q)-[:HAS_BODY]->(b)
-#                     """, qid=question_id, btext_link=drive_link
-#                 )
-#                 logger.info(f"Created HAS_BODY relationship for Question ID: {question_id}")
-
-#                 # Add Tags to the Body Node if they exist
-#                 if 'tags' in question:
-#                     for tag in question['tags']:
-#                         session.run(
-#                             """
-#                             MERGE (t:Tag {word: $word})
-#                             WITH t
-#                             MATCH (b:Body {text_link: $btext_link})
-#                             MERGE (b)-[:HAS_TAG]->(t)
-#                             """, word=tag, btext_link=drive_link
-#                         )
-#                         logger.info(f"Tag {tag} added to Body with link: {drive_link}")
-
-#             except Exception as e:
-#                 logger.error(f"Error processing question {index + 1}: {e}")
-#                 continue
 
 
 def main():

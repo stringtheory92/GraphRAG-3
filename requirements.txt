@@ -74,6 +74,7 @@ multidict==6.1.0
 mypy-extensions==1.0.0
 neo4j==5.25.0
 neo4j-genai==0.6.0
+neo4j-graphrag==0.7.0
 nest-asyncio==1.6.0
 networkx==3.3
 nltk==3.9.1

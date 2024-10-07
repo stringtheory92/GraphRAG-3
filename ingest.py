@@ -13,6 +13,8 @@ load_dotenv()
 
 # Google Drive Authentication
 service = authenticate_google_drive()
+google_drive_folder_id = "1pyAQY1UpjoR1vjCAUv3r_dCeUnxSGPSK"
+# google_drive_folder_id = os.getenv("GOOGLE_DRIVE_FOLDER_ID")
 
 # Neo4j Configuration
 neo4j_password = os.getenv("NEO4JAURA_INSTANCE_PASSWORD")
@@ -68,7 +70,7 @@ def create_vector_index(driver, index_name, label, embedding_property, dimension
 # Now pass "cosine" as the similarity function instead of "euclidean"
 create_vector_index(
     driver=driver,
-    index_name="question_vector_index",
+    index_name="carnivore1",
     label="Question",
     embedding_property="embedding",
     dimensions=384,  # Adjust this based on your embedding model
@@ -81,28 +83,37 @@ def load_json(file_path):
     logger.info(f"Loading JSON file from {file_path}")
     with open(file_path, 'r') as f:
         return json.load(f)
-
-def get_or_create_carnivore_folder(service):
-    """Get the 'carnivore' folder ID, or create it if it doesn't exist."""
-    logger.info("Searching for 'carnivore' folder in Google Drive")
-    query = "name = 'carnivore' and mimeType = 'application/vnd.google-apps.folder'"
-    results = service.files().list(q=query, fields="files(id, name)").execute()
-    folders = results.get('files', [])
     
-    if folders:
-        folder_id = folders[0]['id']
-        logger.info(f"Found existing 'carnivore' folder with ID: {folder_id}")
-        return folder_id
+def get_or_create_carnivore_folder(service):
+    """Retrieve the folder ID from the environment and return it."""
+    if google_drive_folder_id:
+        logger.info(f"Using folder ID from environment: {google_drive_folder_id}")
+        return google_drive_folder_id
     else:
-        logger.info("Creating 'carnivore' folder in Google Drive")
-        file_metadata = {
-            'name': 'carnivore',
-            'mimeType': 'application/vnd.google-apps.folder'
-        }
-        folder = service.files().create(body=file_metadata, fields='id').execute()
-        folder_id = folder.get('id')
-        logger.info(f"Created 'carnivore' folder with ID: {folder_id}")
-        return folder_id
+        logger.error("No Google Drive folder ID found in the environment.")
+        raise ValueError("Google Drive folder ID not found in environment.")
+
+# def get_or_create_carnivore_folder(service):
+#     """Get the 'carnivore' folder ID, or create it if it doesn't exist."""
+#     logger.info("Searching for 'carnivore' folder in Google Drive")
+#     query = "name = 'carnivore' and mimeType = 'application/vnd.google-apps.folder'"
+#     results = service.files().list(q=query, fields="files(id, name)").execute()
+#     folders = results.get('files', [])
+    
+#     if folders:
+#         folder_id = folders[0]['id']
+#         logger.info(f"Found existing 'carnivore' folder with ID: {folder_id}")
+#         return folder_id
+#     else:
+#         logger.info("Creating 'carnivore' folder in Google Drive")
+#         file_metadata = {
+#             'name': 'carnivore',
+#             'mimeType': 'application/vnd.google-apps.folder'
+#         }
+#         folder = service.files().create(body=file_metadata, fields='id').execute()
+#         folder_id = folder.get('id')
+#         logger.info(f"Created 'carnivore' folder with ID: {folder_id}")
+#         return folder_id
 
 def upload_to_drive(service, file_name, text_content):
     """Uploads the given text to Google Drive inside the 'carnivore' folder and tags it as 'api-generated'."""

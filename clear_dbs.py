@@ -46,15 +46,26 @@ def delete_all_embeddings():
 
 # Neo4j Cleanup
 def cleanup_neo4j():
-    """Deletes all nodes and relationships related to Question, Body, Tag, and Topic."""
+    """Deletes all nodes, relationships, and vector indexes related to Question, Body, Tag, and Topic."""
     try:
         logger.info("Cleaning up Neo4j database...")
         with driver.session() as session:
+            # Delete nodes and relationships
             session.run("MATCH (n) WHERE n:Question OR n:Body OR n:Tag OR n:Topic DETACH DELETE n")
+            logger.info("Nodes and relationships deleted.")
+
+            # Drop vector indexes (specify any vector indexes you know exist)
+            index_result = session.run("SHOW INDEXES WHERE type = 'VECTOR'")
+            for record in index_result:
+                index_name = record['name']
+                session.run(f"DROP INDEX {index_name}")
+                logger.info(f"Vector index '{index_name}' deleted.")
+
         logger.info("Neo4j database cleaned successfully.")
     except Exception as e:
         logger.error(f"Error cleaning Neo4j database: {e}")
         raise
+
 
 # Get or create 'carnivore' folder in Google Drive
 def get_or_create_carnivore_folder(service):

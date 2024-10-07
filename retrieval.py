@@ -11,7 +11,7 @@ from neo4j_graphrag.types import RetrieverResultItem
 # Load environment variables
 load_dotenv()
 
-INDEX_NAME = "question_vector_index"
+INDEX_NAME = "index_343aff4e"
 
 # Neo4j Configuration
 neo4j_password = os.getenv("NEO4JAURA_INSTANCE_PASSWORD")
@@ -78,7 +78,7 @@ def retrieve_similar_questions(query):
         driver=driver,
         index_name=INDEX_NAME,
         embedder=embed_model,
-        top_k=2  # Retrieve top 2 similar results
+        # top_k=2  # Retrieve top 2 similar results
     )
 
     # Perform the vector search

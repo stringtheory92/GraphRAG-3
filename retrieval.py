@@ -11,7 +11,7 @@ from neo4j_graphrag.types import RetrieverResultItem
 # Load environment variables
 load_dotenv()
 
-INDEX_NAME = "index_343aff4e"
+INDEX_NAME = "carnivore1"
 
 # Neo4j Configuration
 neo4j_password = os.getenv("NEO4JAURA_INSTANCE_PASSWORD")
@@ -78,51 +78,61 @@ def retrieve_similar_questions(query):
         driver=driver,
         index_name=INDEX_NAME,
         embedder=embed_model,
-        # top_k=2  # Retrieve top 2 similar results
     )
 
     # Perform the vector search
-    results = retriever.search(query_embedding=embedding, top_k=2)
+    results = retriever.search(query_text=query, top_k=2)
 
     if not results:
         logger.warning("No similar questions found.")
         return []
 
-    # Collect the questions and their related nodes (Body, Topic, etc.)
+    # Collect the questions and their related nodes (Body, Tags, etc.)
     collected_results = []
 
-    for result_item in results:
-        try:
-            question_id = result_item['id']
-            question_text = result_item['text']
-            logger.info(f"Found similar question: {question_text} with ID: {question_id}")
+    for label, items in results:  # 'label' is 'items', 'items' is the list of RetrieverResultItem
+        logger.debug(f"RESULT LABEL: {label}")
+        for result_item in items:  # Iterate over the RetrieverResultItem objects
+            if isinstance(result_item, str):
+                logger.debug(f"Skipping result_item: {result_item}")
+                continue
 
-            # Fetch related Body and Topic info from Neo4j
-            with driver.session() as session:
-                body_result = session.run(
-                    """
-                    MATCH (q:Question {id: $qid})-[:HAS_BODY]->(b:Body)
-                    RETURN b.text_link AS body_link
-                    """, qid=question_id
-                ).single()
+            logger.debug(f"RESULT ITEM: {result_item}")
+            try:
+                content = eval(result_item.content)  # Convert content to dictionary
+                question_id = content['id']
+                question_text = content['text']
+                logger.info(f"Found similar question: {question_text} with ID: {question_id}")
 
-                topic_result = session.run(
-                    """
-                    MATCH (q:Question {id: $qid})-[:HAS_TOPIC]->(t:Topic)
-                    RETURN t.name AS topic
-                    """, qid=question_id
-                ).single()
+                # Fetch related Body and Tags info from Neo4j
+                with driver.session() as session:
+                    body_result = session.run(
+                        """
+                        MATCH (q:Question {id: $qid})-[:HAS_BODY]->(b:Body)
+                        RETURN b.id AS body_id, b.text_link AS body_link
+                        """, qid=question_id
+                    ).single()
+                    logger.info(f"BODY RESULT: {body_result}")
 
-            collected_results.append({
-                "question": question_text,
-                "body_link": body_result["body_link"] if body_result else None,
-                "topic": topic_result["topic"] if topic_result else None,
-            })
+                    tags_result = session.run(
+                        """
+                        MATCH (b:Body {id: $bid})-[:HAS_TAG]->(t:Tag)
+                        RETURN t.word AS tags
+                        """, bid=body_result["body_id"]  # Assuming body link represents body id
+                    ).single()
 
-        except Exception as e:
-            logger.error(f"Error processing result_item: {e}")
-    
+                collected_results.append({
+                    "question": question_text,
+                    "body_link": body_result["body_link"] if body_result else None,
+                    "tags": tags_result["tags"] if tags_result else None,
+                })
+
+            except Exception as e:
+                logger.error(f"Error processing result_item: {e}")
+
     return collected_results
+
+
 
 
 def main():
@@ -136,7 +146,8 @@ def main():
     for result in results:
         logger.info(f"Question: {result['question']}")
         logger.info(f"Related Body Link: {result['body_link']}")
-        logger.info(f"Topic: {result['topic']}")
+        logger.info(f"Tags: {result['tags']}")  # Updated this line to log 'tags'
+
 
 if __name__ == "__main__":
     main()

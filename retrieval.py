@@ -114,17 +114,25 @@ def retrieve_similar_questions(query):
                     ).single()
                     logger.info(f"BODY RESULT: {body_result}")
 
+                    # Fetch all tags for the body
                     tags_result = session.run(
                         """
                         MATCH (b:Body {id: $bid})-[:HAS_TAG]->(t:Tag)
                         RETURN t.word AS tags
-                        """, bid=body_result["body_id"]  # Assuming body link represents body id
-                    ).single()
+                        """, bid=body_result["body_id"]
+                    ).values("tags")  # Use .values() to return all tag values as a list
+
+                    # Flatten the tags_result into a 1D array
+                    flat_tags_result = [tag for sublist in tags_result for tag in sublist]
+                    logger.info(f"FLATTENED TAGS RESULT: {flat_tags_result}")
 
                 collected_results.append({
                     "question": question_text,
                     "body_link": body_result["body_link"] if body_result else None,
-                    "tags": tags_result["tags"] if tags_result else None,
+                    "tags": flat_tags_result if flat_tags_result else None,  
+                    # Flatten the tags_result into a 1D array
+                    
+
                 })
 
             except Exception as e:

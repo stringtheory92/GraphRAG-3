@@ -12,7 +12,176 @@ client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY")
 )
 
-TAGS = ["Beginner","Dairy", "Lifestyle","Metabolic Health","Mental and Cognitive Health","Exercise and Physical Performance","Inflammation and Autoimmune Conditions","Gut Health","Nutritional Myths and Misconceptions","Fruit Sugar and Carbohydrates","Disease Prevention","Sustainability and Ethics","Ketosis and Fat Adaptation","Vitamin and Nutrient Deficiencies","Fasting","Autophagy","Cholesterol and Heart Disease","Weight Loss and Fat Loss","Cancer","Sleep and Recovery","Skin Health","Hormonal Balance","Carnivore for Children and Families","Evolutionary Nutrition","Anti-Aging and Longevity","Food Addiction","Electrolytes and Hydration","Reproductive Health","Histamine Intolerance","Food Sensitivities","Thyroid Health","Salt","Muscle Building and Protein Intake","Bone Health and Joint Pain","Sleep Apnea","Chronic Fatigue Syndrome","Vitamin D","Sunlight","Carb Cycling","Fat Protein Ratio","Dental Health","Mood Stabilization and Anxiety","Hyperinsulinemia","Sarcopenia Prevention","Osteoporosis","Liver Health","Digestive Health","Constipation and Diarrhea", "Alzheimer's", "Taking statins", "Tumor", "Other professors or doctors", "carnivore athletes"]
+TAGS = ["Beginner",
+        "Dairy", 
+        "Lifestyle",
+        "Metabolic Health",
+        "Mental and Cognitive Health",
+        "Exercise and Physical Performance",
+        "Inflammation and Autoimmune Conditions",
+        "Gut Health",
+        "Nutritional Myths and Misconceptions",
+        "Fruit Sugar and Carbohydrates",
+        "Disease Prevention",
+        "Sustainability and Ethics",
+        "Ketosis and Fat Adaptation",
+        "Vitamin and Nutrient Deficiencies",
+        "Fasting",
+        "Autophagy",
+        "Cholesterol and Heart Disease",
+        "Weight Loss and Fat Loss",
+        "Cancer",
+        "Sleep and Recovery",
+        "Skin Health",
+        "Hormonal Balance",
+        "Carnivore for Children and Families",
+        "Evolutionary Nutrition",
+        "Anti-Aging and Longevity",
+        "Food Addiction",
+        "Electrolytes and Hydration",
+        "Reproductive Health",
+        "Histamine Intolerance",
+        "Food Sensitivities",
+        "Thyroid Health",
+        "Salt",
+        "Muscle Building and Protein Intake",
+        "Bone Health and Joint Pain",
+        "Sleep Apnea",
+        "Chronic Fatigue Syndrome",
+        "Vitamin D","Sunlight",
+        "Carb Cycling",
+        "Fat Protein Ratio",
+        "Dental Health",
+        "Mood Stabilization and Anxiety",
+        "Hyperinsulinemia",
+        "Sarcopenia Prevention",
+        "Osteoporosis",
+        "Liver Health",
+        "Digestive Health",
+        "Constipation and Diarrhea",
+        "Alzheimer's", 
+        "Taking statins", 
+        "Tumor", 
+        "Other professors or doctors", 
+        "carnivore athletes",
+        "Malabsorption",
+        "Glycogen",
+        "Organ Meats",
+        "Fiber",
+        "Meat Aversion",
+        "Tryptophan",
+        "Blue Zones",
+        "Veganism",
+        "Arrhythmia",
+        "Pregnancy",
+        "Vegetarianism",
+        "Studies in nutrition science",
+        "Dietetics Association",
+        "Seventh Day Adventist Church",
+        "Butter",
+        "Community",
+        "Insomnia",
+        "CDB",
+        "Autism",
+        "Depression",
+        "Major Carnivore Recovery Stories",
+        "Epilepsy",
+        "Hydration",
+        "Seed Oils",
+        "Anthropology",
+        "Medication",
+        "Kids",
+        "Elderly",
+        "Oral health",
+        "Blood clots",
+        "Vascular issues",
+        "Coffee",
+        "Kidneys",
+        "Cholesterol",
+        "Inuit",
+        "Maasai",
+        "Kikuyu",
+        "Ancel Keys",
+        "Paul Saladino",
+        "Statistics",
+        "Narcolepsy",
+        "Life expectancy",
+        "Calcium",
+        "Testosterone",
+        "Estrogen",
+        "Ovaries",
+        "Big Rant (used for outsized text bodies)",
+        "Potassium",
+        "Magnesium",
+        "Sleep",
+        "Goat",
+        "Lamb",
+        "ADHD",
+        "Grass-Fed",
+        "Omega-3 and Omega-6",
+        "B12",
+        "Cyanide",
+        "Fatty Liver",
+        "Gluconeogenesis",
+        "Acne",
+        "Urea and Creatinine",
+        "Protein Powders",
+        "Polyps",
+        "Dopamine",
+        "Alcohol",
+        "Cannabis",
+        "Genetics",
+        "Cecum",
+        "Primates",
+        "CAC Score",
+        "Melatonin",
+        "Probiotics",
+        "Gallstones",
+        "Anorexia",
+        "mRNA",
+        "GMO",
+        "Artificial Sweeteners",
+        "Fertility and Sterility",
+        "Agricultural Revolution",
+        "Ice Age",
+        "Migraine",
+        "Body Odor",
+        "Moisturizers",
+        "Essential Oils",
+        "Psoriasis",
+        "Arthritis",
+        "Randle Cycle",
+        "Framingham Heart Study",
+        "American Heart Association",
+        "Proctor and Gamble",
+        "Gout",
+        "Oxalates",
+        "Oxalate Stones",
+        "Kidney Stones",
+        "Parkinson’s",
+        "Rapid Heartbeat",
+        "Histamines",
+        "Gallstones",
+        "Hair loss",
+        "A1C or hbA1C",
+        "Fat to Protein Ratio",
+        "High A1C",
+        "High Triglycerides",
+        "Fasting Insulin",
+        "Insulin",
+        "Caffeine",
+        "Morality of Eating Meat",
+        "Farming vs Ranching on Wildlife and Environment",
+        "Monocropping",
+        "Antibiotics",
+        "Eczema",
+        "Schatzki’s Ring",
+        "Diverticulitis and Diverticulosis",
+        "Amyloid plaque",
+        "Chelating agent - pull toxic chemicals out of your body",
+        "Cheating on the carnivore diet (come up with a more concise term for this)"
+        
+        ]
 
 def generate_question_tags(excerpt):
     logger.debug(f"Generating question and tags for excerpt:")
@@ -82,14 +251,129 @@ def generate_question_tags(excerpt):
         raise e
 
     output = response.choices[0].message.content.strip()
-    return output
+    # return output
+    try:
+        # output = output.split("?")
+        # logger.info(f"Stage 1: {output}")
+        # question = output[0].strip() + "?"
+        # logger.info(f"Stage 2: {output}")
+        # logger.info(f"Stage 2: {question}")
+        # tags = json.loads(output[1].strip())  # Convert the stringified list to an actual list
 
-def process_data(json_data, output_dir="./2_added_qt", error_log_file="error_segments.json"):
-    sanitized_title = json_data[0]["title"].replace(" ", "_").replace("/", "_")  
-    output_dir = os.path.join(output_dir, f"PQT_{sanitized_title}.json")
+        # logger.debug(f"Generated question: {question}")
+        # logger.debug(f"Generated tags: {tags}")
+
     
+        output = output.split("?", 1)  # Split by the first occurrence of '?'
+        logger.info(f"Stage 1: {output}")
+        
+        # Extract the question and ensure it ends with a question mark
+        question = output[0].strip() + "?"
+        logger.info(f"Stage 2 - Question: {question}")
+        
+        # Manually parse the tags list from the second part of the response
+        tags_str = output[1].strip()
+        
+        # Remove any extraneous characters around the list (like newlines or spaces) and evaluate it as a list
+        tags = eval(tags_str)
+        
+        logger.debug(f"Generated question: {question}")
+        logger.debug(f"Generated tags: {tags}")
+
+        return question, tags
+    except Exception as e:
+        logger.error(f"Error parsing OpenAI response: {e}")
+        raise e
+
+# def process_data(json_data, output_dir="./2_1_added_qt", error_log_file="error_segments.json"):
+#     sanitized_title = json_data[0]["title"].replace(" ", "_").replace("/", "_")  
+#     output_dir = os.path.join(output_dir, f"PQT_{sanitized_title}.json")
+    
+#     # Ensure that the output directory exists
+#     os.makedirs(output_dir, exist_ok=True)
+
+#     if not os.path.exists(output_dir):
+#         with open(output_dir, 'w') as f:
+#             json.dump([], f)
+
+#     logger.info(f"Starting transcript processing for: {json_data[0]['title']}")
+#     for idx, segment in enumerate(json_data):
+#         body = segment["body"]
+#         title = segment["title"]
+#         try:
+#             question, tags = generate_question_tags(body)
+
+#             logger.info(f"Successfully processed segment {idx}")
+            
+#             segment["question"] = question
+#             segment["tags"] = tags  # This will now be a proper list
+            
+#             with open(output_dir, 'r') as f:
+#                 existing_data = json.load(f)
+
+#             existing_data.append(segment)
+
+#             with open(output_dir, 'w') as f:
+#                 json.dump(existing_data, f, indent=2)
+
+#             logger.info(f"Segment appended to {output_dir}")
+
+#         except Exception as e:
+#             logger.error(f"Error processing segment {idx}: {e}")
+#             write_failed_segment(idx, body, error_log_file)
+#             continue  
+#     # for idx, segment in enumerate(json_data):
+#     #     body = segment["body"]
+#     #     title = segment["title"]
+#     #     try:
+#     #         output = generate_question_tags(body)
+
+#     #         try:
+#     #             output = output.split("?")
+#     #             output = [val.strip() for val in output]
+
+#     #             question = output[0] + "?"
+#     #             tags = [tag.strip() for tag in output[1].splitlines() if tag.strip()]
+
+#     #             logger.info(f"Successfully processed segment {idx}")
+                
+#     #             segment["question"] = question
+#     #             segment["tags"] = tags
+                
+#     #             with open(output_dir, 'r') as f:
+#     #                 existing_data = json.load(f)
+
+#     #             existing_data.append(segment)
+
+#     #             with open(output_dir, 'w') as f:
+#     #                 json.dump(existing_data, f, indent=2)
+
+#     #             logger.info(f"Segment appended to {output_dir}")
+
+#     #         except Exception as e:
+#     #             logger.error(f"Error processing segment {idx}: {e}")
+#     #             write_failed_segment(idx, body, error_log_file)
+#     #             continue  
+
+#     #     except Exception as e:
+#     #         logger.error(f"Stopping processing of transcript due to error: {e}")
+#     #         break
+
+#     logger.info("Transcript processing complete.")
+
+def process_data(json_data, output_dir="./2_1_added_qt", error_log_file="error_segments.json"):
+    # Ensure output directory exists
     if not os.path.exists(output_dir):
-        with open(output_dir, 'w') as f:
+        os.makedirs(output_dir)
+
+    # Create the output file path by using the title of the segment
+    sanitized_title = json_data[0]["title"].replace(" ", "_").replace("/", "_")  
+    output_file_path = os.path.join(output_dir, f"PQT_{sanitized_title}.json")
+    
+    # Initialize the output file if it doesn't exist
+    if not os.path.exists(output_file_path):
+        with open(output_file_path, 'w') as f:
+            logger.info(f"Initializing {output_file_path}")
             json.dump([], f)
 
     logger.info(f"Starting transcript processing for: {json_data[0]['title']}")
@@ -98,29 +382,35 @@ def process_data(json_data, output_dir="./2_added_qt", error_log_file="error_seg
         body = segment["body"]
         title = segment["title"]
         try:
-            output = generate_question_tags(body)
+            # Generate question and tags
+            question, tags = generate_question_tags(body)
 
             try:
-                output = output.split("?")
-                output = [val.strip() for val in output]
+                # # Process the question and tags
+                # output = output.split("?")
+                # output = [val.strip() for val in output]
 
-                question = output[0] + "?"
-                tags = [tag.strip() for tag in output[1].splitlines() if tag.strip()]
+                # question = output[0] + "?"
+                # tags = [tag.strip() for tag in output[1].splitlines() if tag.strip()]
 
                 logger.info(f"Successfully processed segment {idx}")
                 
+                # Update the segment with the new data
                 segment["question"] = question
                 segment["tags"] = tags
                 
-                with open(output_dir, 'r') as f:
+                # Load existing data from the file
+                with open(output_file_path, 'r') as f:
                     existing_data = json.load(f)
 
+                # Append the new segment data to the existing data
                 existing_data.append(segment)
 
-                with open(output_dir, 'w') as f:
+                # Write the updated data back to the file
+                with open(output_file_path, 'w') as f:
                     json.dump(existing_data, f, indent=2)
 
-                logger.info(f"Segment appended to {output_dir}")
+                logger.info(f"Segment appended to {output_file_path}")
 
             except Exception as e:
                 logger.error(f"Error processing segment {idx}: {e}")

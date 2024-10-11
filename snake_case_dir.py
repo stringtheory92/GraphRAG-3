@@ -1,6 +1,8 @@
 import os
 import re
 
+"""this script is just for snake casing the youtube titles for storing in the data"""
+
 def to_snake_case(filename):
     # Remove file extension
     name, ext = os.path.splitext(filename)

@@ -33,14 +33,14 @@ def combine_context(user_input, body_texts):
     """Combines user input and body texts into a single context prompt."""
     combined_context = f"User question: {user_input}\n\nContext:\n"
     for i, body_text in enumerate(body_texts):
-        combined_context += f"---\nContext {i+1}:\n{body_text}...\n"  # Limiting text length for brevity
-        # combined_context += f"---\nContext {i+1}:\n{body_text[:500]}...\n"  # Limiting text length for brevity
+        combined_context += f"---\nContext {i+1}:\n{body_text}...\n" 
+        # combined_context += " ---\nPlease read through the following information carefully and respond using the most relevant parts to answer the question. If the context doesn't provide a clear yes or no, explain any nuances or relevant insights based on the information available.\n"
     return combined_context
 
 def query_openai(system_prompt, user_prompt):
     """Query OpenAI with the given system and user prompts."""
 
-    logger.info(f"PROMPT: {user_prompt}")
+    logger.info(f"PROMPT: {user_prompt}" + " ---\nPlease read through the following information carefully and respond using the most relevant parts to answer the question. If the context doesn't provide a clear yes or no, explain any nuances or relevant insights based on the information available.\n")
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",  
@@ -86,11 +86,18 @@ def generate_chat_response(user_input, use_groq=False):
     # Step 3: Combine user input and context
     combined_context = combine_context(user_input, body_texts)
     
-    system_prompt = (
-        "You are an assistant designed to answer questions based solely on the provided context. "
-        "Do not use any prior knowledge or training data. If the provided context is insufficient "
-        "to answer the user's question, reply with 'I don't have enough information to answer this question.'"
-    )
+    # system_prompt = (
+    #     "You are an assistant designed to answer questions based solely on the provided context. "
+    #     "Do not use any prior knowledge or training data. If the provided context is insufficient "
+    #     "to answer the user's question, reply with 'I don't have enough information to answer this question.'"
+    # )
+    system_prompt = """
+        You are an assistant designed to answer questions based solely on the provided context. Your goal is to provide as much relevant detail from the context as possible without introducing any information from your prior training or knowledge that is not found in the context. 
+        If the context contains relevant information that addresses the user's question, even if the answer is complex or ambiguous, provide that information in full. 
+        If there is no direct answer, offer the most relevant insights based on the context without making unsupported assumptions or conclusions. 
+        If the provided context is not sufficient to address the user's question at all, reply with 'I don't have enough information to answer this question.'
+        """
+
     
     # Step 4: Query the appropriate model (OpenAI or Groq)
     if use_groq:
@@ -101,10 +108,12 @@ def generate_chat_response(user_input, use_groq=False):
 
 if __name__ == "__main__":
     # Example usage with OpenAI:
-    user_input = "What is the best diet for muscle gain?"
-    response = generate_chat_response(user_input, use_groq=True)
-    logger.info(f"Response from OpenAI: {response}")
+    # user_input = "What is the best diet for muscle gain?"
+    # response = generate_chat_response(user_input, use_groq=True)
+    # logger.info(f"Response from OpenAI: {response}")
 
     # Example usage with Groq:
     # response_groq = generate_chat_response(user_input, use_groq=True)
     # logger.info(f"Response from Groq: {response_groq}")
+    import sys
+    logger.info(f"Chatbot Path: {sys.path}")

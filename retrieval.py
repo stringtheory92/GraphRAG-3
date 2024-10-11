@@ -1,4 +1,7 @@
 import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from neo4j import GraphDatabase
 from neo4j_graphrag.retrievers import VectorRetriever
 from neo4j_graphrag.llm import LLMInterface, LLMResponse
@@ -81,7 +84,7 @@ def retrieve_similar_questions(query):
     )
 
     # Perform the vector search
-    results = retriever.search(query_text=query, top_k=2)
+    results = retriever.search(query_text=query, top_k=4)
 
     if not results:
         logger.warning("No similar questions found.")
@@ -158,7 +161,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+
+    import sys
+    logger.info(f"Retrieval Path: {sys.path}")
 
 
 # =========================

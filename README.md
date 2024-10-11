@@ -1,7 +1,22 @@
+### To start the app
+
+**API, run from root:**
+
+```bash
+uvicorn api:app
+```
+
+**Frontend run from chatbot-frontend:**
+
+```bash
+npm start
+```
+
 # New Structure
 
 - `id`
-- `date`
+- `date` **(not implemented yet)**
+- `question`
 - `title`
 - `topics`
 - `body`

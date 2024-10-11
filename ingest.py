@@ -227,7 +227,7 @@ def add_data_to_neo4j(question_data, service):
 
 
 def main():
-    file_path = "new_data_structure/ingest_data.json"
+    file_path = "new_data_structure/second_ingest_data.json"
     data = load_json(file_path)
 
     num_questions = len(data)

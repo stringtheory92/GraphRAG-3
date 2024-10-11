@@ -39,3 +39,5 @@
 - The questions currently do not take in context from the previous parts of the conversation. Extend to take in the full context of the conversation, and create a limit to the amount of conversation context it can have
 
 - Have responses less of a list and more natural, but still include all relevant information
+
+- additional layer of knowledge graph nodes for key figures mentioned in the carnivore community. Node can contain the name and body link for text information about the individual. Then the node can also be connected to different bodies of text based on if they are mentioned (need to figure that out). Should be included in tags for explicit queries about these individuals

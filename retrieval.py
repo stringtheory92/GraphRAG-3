@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from neo4j import GraphDatabase
@@ -15,6 +16,8 @@ from neo4j_graphrag.types import RetrieverResultItem
 load_dotenv()
 
 INDEX_NAME = "carnivore1"
+with open("tags_list.json", "r") as file:
+    TAGS = json.load(file)
 
 # Neo4j Configuration
 neo4j_password = os.getenv("NEO4JAURA_INSTANCE_PASSWORD")
@@ -68,6 +71,57 @@ def generate_embedding(text):
     embedding = embed_model.embed_documents([text])[0]
     logger.info(f"Generated embedding of length: {len(embedding)}")
     return embedding
+
+def retrieve_by_tags(query_tags, top_k=2):
+    """
+    Retrieve text bodies that match the most number of relevant tags from Neo4j.
+    Returns top_k bodies with the highest number of matching tags.
+    If multiple bodies have the same number of matches, all tied bodies are returned.
+    """
+    logger.info(f"Starting tag-based retrieval for tags: {query_tags}")
+
+    # Dictionary to store body_ids and the number of matching tags
+    body_match_count = {}
+
+    with driver.session() as session:
+        for tag in query_tags:
+            # Fetch text bodies that are associated with the current tag
+            results = session.run(
+                """
+                MATCH (b:Body)-[:HAS_TAG]->(t:Tag {word: $tag})
+                RETURN b.id AS body_id, b.text_link AS body_link
+                """, tag=tag
+            ).values("body_id", "body_link")
+
+            # Update the match count for each body_id
+            for body_id, body_link in results:
+                if body_id not in body_match_count:
+                    body_match_count[body_id] = {
+                        "body_link": body_link,
+                        "matched_tags": set(),  # Keep track of matched tags
+                        "match_count": 0
+                    }
+                body_match_count[body_id]["matched_tags"].add(tag)
+                body_match_count[body_id]["match_count"] = len(body_match_count[body_id]["matched_tags"])
+
+    # Sort bodies by the number of matching tags, in descending order
+    sorted_bodies = sorted(body_match_count.values(), key=lambda x: x["match_count"], reverse=True)
+
+    # Find the top k bodies with the highest number of matching tags
+    top_results = []
+    top_match_count = sorted_bodies[0]["match_count"] if sorted_bodies else 0
+
+    for body in sorted_bodies:
+        if body["match_count"] < top_match_count and len(top_results) >= top_k:
+            break
+        top_results.append({
+            "body_link": body["body_link"],
+            "matched_tags": list(body["matched_tags"]),
+            "match_count": body["match_count"]
+        })
+
+    logger.info(f"Retrieved {len(top_results)} results by tags")
+    return top_results
 
 def retrieve_similar_questions(query):
     """Retrieve semantically similar questions from Neo4j using vector similarity (cosine)."""

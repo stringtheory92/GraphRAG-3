@@ -73,22 +73,24 @@ def retrieve_by_tags(query_tags, top_k=2):
     return top_results
 
 
-def test_tag_retrieval():
+def tag_retrieval(query_tags=[]):
     """Test tag retrieval with a sample set of query tags."""
-    query_tags = [
-        "Beginner",
-  "Dairy",
-  "Lifestyle",
-  "Metabolic Health",
-  "Mental and Cognitive Health",
-  "Exercise and Physical Performance",
-  "Inflammation and Autoimmune Conditions",
-  "Gut Health",
-  "Nutritional Myths and Misconceptions",
-    ]  # Example query tags to search for
-    # query_tags = ["Salt", ]  # Example query tags to search for
+    # FOR TESTING
+#     query_tags = [
+#         "Beginner",
+#   "Dairy",
+#   "Lifestyle",
+#   "Metabolic Health",
+#   "Mental and Cognitive Health",
+#   "Exercise and Physical Performance",
+#   "Inflammation and Autoimmune Conditions",
+#   "Gut Health",
+#   "Nutritional Myths and Misconceptions",
+#     ]  
+    
     logger.info(f"Running tag-based retrieval for tags: {query_tags}")
 
+    # FOR TESTING
     # results = retrieve_by_tags(TAGS, top_k=2)
     results = retrieve_by_tags(query_tags, top_k=2)
 
@@ -105,4 +107,4 @@ def test_tag_retrieval():
 
 if __name__ == "__main__":
     # Run the tag retrieval test
-    test_tag_retrieval()
+    tag_retrieval()

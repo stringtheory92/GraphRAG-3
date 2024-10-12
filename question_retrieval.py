@@ -123,7 +123,7 @@ def retrieve_by_tags(query_tags, top_k=2):
     logger.info(f"Retrieved {len(top_results)} results by tags")
     return top_results
 
-def retrieve_similar_questions(query):
+def question_retrieval(query):
     """Retrieve semantically similar questions from Neo4j using vector similarity (cosine)."""
     logger.info(f"Starting retrieval for query: {query}")
 
@@ -205,7 +205,7 @@ def main():
     query = "What is the best diet for muscle gain?"
 
     # Perform retrieval
-    results = retrieve_similar_questions(query)
+    results = question_retrieval(query)
 
     # Output the results
     for result in results:

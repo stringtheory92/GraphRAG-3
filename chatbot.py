@@ -1,7 +1,8 @@
 import requests
 from openai import OpenAI
 from groq import Groq
-from retrieval import retrieve_similar_questions  # Assuming this imports your retrieval logic
+from question_retrieval import question_retrieval  
+from tag_retrieval import tag_retrieval
 from loguru import logger
 import os
 

@@ -69,8 +69,32 @@ def retrieve_by_tags(query_tags, top_k=2):
             "match_count": body["match_count"]
         })
 
-    logger.info(f"Retrieved {len(top_results)} results by tags")
-    return top_results
+    # logger.info(f"Retrieved {len(top_results)} results by tags")
+    # return top_results
+    # Aligning the output structure to question_retrieval format
+    collected_results = []
+
+    for body in top_results:
+        with driver.session() as session:
+            # Fetch related tags for the body
+            tags_result = session.run(
+                """
+                MATCH (b:Body {id: $bid})-[:HAS_TAG]->(t:Tag)
+                RETURN t.word AS tags
+                """, bid=body["body_link"]
+            ).values("tags")  # Use .values() to return all tag values as a list
+
+            # Flatten the tags_result into a 1D array
+            flat_tags_result = [tag for sublist in tags_result for tag in sublist]
+
+            collected_results.append({
+                "body_link": body["body_link"],
+                "tags": flat_tags_result if flat_tags_result else None
+            })
+
+    logger.info(f"Retrieved {len(collected_results)} results by tags")
+    return collected_results
+
 
 
 def tag_retrieval(query_tags=[]):

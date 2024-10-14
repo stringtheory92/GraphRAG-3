@@ -11,6 +11,8 @@ load_dotenv()
 with open("tags_list.json", "r") as file:
     TAGS = json.load(file)
 
+PRIORITY_TAGS = ["Alzheimers"]
+
 # Neo4j Configuration
 neo4j_password = os.getenv("NEO4JAURA_INSTANCE_PASSWORD")
 neo4j_username = os.getenv("NEO4JAURA_INSTANCE_USERNAME")
@@ -52,10 +54,10 @@ def retrieve_by_tags(query_tags, top_k=2):
                     }
                 body_match_count[body_id]["matched_tags"].add(tag)
                 body_match_count[body_id]["match_count"] = len(body_match_count[body_id]["matched_tags"])
-
+    
     # Sort bodies by the number of matching tags, in descending order
     sorted_bodies = sorted(body_match_count.values(), key=lambda x: x["match_count"], reverse=True)
-
+    logger.info(f"sorted match cnt: {sorted_bodies}")
     # Find the top k bodies with the highest number of matching tags
     top_results = []
     top_match_count = sorted_bodies[0]["match_count"] if sorted_bodies else 0

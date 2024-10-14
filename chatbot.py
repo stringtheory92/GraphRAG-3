@@ -133,7 +133,8 @@ def get_user_input_tags(user_input):
         raise e
 
     output = response.choices[0].message.content.strip()
-    return output
+
+    return eval(output)["tags"]
 
 
 
@@ -141,9 +142,10 @@ def generate_chat_response(user_input, use_groq=False):
     """Generates a response from either OpenAI or Groq, based on the user's choice."""
     # Step 1: Retrieve similar questions and their body links
     query_tags = get_user_input_tags(user_input)
-    results_by_question = question_retrieval(user_input)
     results_by_tag = retrieve_by_tags(query_tags)
-    # results_by_tag = tag_retrieval(query_tags)
+    # results_by_question = question_retrieval(user_input)
+    # results_by_question = []
+
     body_links = [result['body_link'] for result in (results_by_question + results_by_tag) if result['body_link']]
     
     if not body_links:

@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import random
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 from loguru import logger
@@ -11,7 +12,7 @@ load_dotenv()
 with open("tags_list.json", "r") as file:
     TAGS = json.load(file)
 
-PRIORITY_TAGS = ["Alzheimers"]
+PRIORITY_TAGS = ["Cancer", "Kids"]
 
 # Neo4j Configuration
 neo4j_password = os.getenv("NEO4JAURA_INSTANCE_PASSWORD")
@@ -27,7 +28,8 @@ def retrieve_by_tags(query_tags, top_k=2):
     """
     Retrieve text bodies that match the most number of relevant tags from Neo4j.
     Returns top_k bodies with the highest number of matching tags.
-    If multiple bodies have the same number of matches, all tied bodies are returned.
+    If multiple bodies have the same number of matches, prioritize based on tag priority.
+    If there's still a tie, randomly select top_k bodies.
     """
     logger.info(f"Starting tag-based retrieval for tags: {query_tags}")
 
@@ -50,14 +52,21 @@ def retrieve_by_tags(query_tags, top_k=2):
                     body_match_count[body_id] = {
                         "body_link": body_link,
                         "matched_tags": set(),  # Keep track of matched tags
-                        "match_count": 0
+                        "match_count": 0,
+                        "priority_score": 0  # Track priority score
                     }
                 body_match_count[body_id]["matched_tags"].add(tag)
                 body_match_count[body_id]["match_count"] = len(body_match_count[body_id]["matched_tags"])
+
+                # If the tag is in the priority list, increase the priority score
+                if tag in PRIORITY_TAGS:
+                    body_match_count[body_id]["priority_score"] += PRIORITY_TAGS.index(tag) + 1  # Higher rank for earlier tags
+
+    logger.info(f"Matched {len(body_match_count)} by tags")
     
     # Sort bodies by the number of matching tags, in descending order
     sorted_bodies = sorted(body_match_count.values(), key=lambda x: x["match_count"], reverse=True)
-    logger.info(f"sorted match cnt: {sorted_bodies}")
+    
     # Find the top k bodies with the highest number of matching tags
     top_results = []
     top_match_count = sorted_bodies[0]["match_count"] if sorted_bodies else 0
@@ -71,8 +80,9 @@ def retrieve_by_tags(query_tags, top_k=2):
             "match_count": body["match_count"]
         })
 
-    # logger.info(f"Retrieved {len(top_results)} results by tags")
-    # return top_results
+    # If we still have more than top_k bodies, randomly select from the top
+    if len(top_results) > top_k:
+        top_results = random.sample(top_results, top_k)
     # Aligning the output structure to question_retrieval format
     collected_results = []
 

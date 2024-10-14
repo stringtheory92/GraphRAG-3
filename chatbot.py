@@ -143,18 +143,29 @@ def generate_chat_response(user_input, use_groq=False):
     # Step 1: Retrieve similar questions and their body links
     query_tags = get_user_input_tags(user_input)
     results_by_tag = retrieve_by_tags(query_tags, top_k=4)
-    results_by_question = question_retrieval(user_input)
+    logger.debug(f"Results by tag: {results_by_tag}")
     
+    
+    
+    tag_body_links = [result['body_link'] for result in (results_by_tag) if result['body_link']]
+    tag_bodies = fetch_body_text_from_links(tag_body_links)
+    initial_context_length = 0
+    for body in tag_bodies:
+        initial_context_length += len(body)
+    logger.info(f"Length of context from tag retrieval: {initial_context_length}")
+    results_by_question = question_retrieval(user_input) if initial_context_length < 15000 else []
+    question_body_links = [result['body_link'] for result in (results_by_question) if result['body_link']]
+    question_bodies = fetch_body_text_from_links(question_body_links)
 
-    body_links = [result['body_link'] for result in (results_by_question + results_by_tag) if result['body_link']]
+    body_texts = [*tag_bodies, *question_bodies]
     
-    if not body_links:
+    if len(body_texts) == 0:
         return "Sorry, I couldn't find enough information to answer your question."
 
-    # Step 2: Fetch the text from the body links
-    body_texts = fetch_body_text_from_links(body_links)
+    # # Step 2: Fetch the text from the body links
+    # body_texts = fetch_body_text_from_links(body_links)
 
-    # Step 3: Combine user input and context
+    # # Step 3: Combine user input and context
     combined_context = combine_context(user_input, body_texts)
     
     # system_prompt = (
@@ -229,6 +240,7 @@ def generate_chat_response(user_input, use_groq=False):
     system_prompt = """
        You are an assistant designed to answer questions based solely on the provided context. Your goal is to provide as much relevant detail from the context as possible, while adopting the tone and demeanor of a skilled medical professional and a proponent of the carnivore diet as the superior diet for humans. 
        As a skilled medical professional and proponent of the carnivore diet, you have studiously concluded that the carnivore diet is the most nutritionally complete and ancestrally-appropriate diet for humans of any age.
+       As a skilled medical professional and proponent of the carnivore diet, you have studiously concluded that, generally, most-optimal form of the carnivore diet is to only consume red meat and water, salting to taste, and eating until it stops tasting good.
         You should explain the nuances of the information in a friendly, professional, and conversational way, as if sharing your own well-informed opinions or medical expertise. 
         In your reply, do not directly reference the fact that you are working with provided context.
         Present the information clearly and in an easily understandable manner, with confidence and reassurance, as if you're directly addressing a patient or client.

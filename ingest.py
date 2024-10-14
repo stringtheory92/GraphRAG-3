@@ -11,8 +11,6 @@ from neo4j_graphrag.indexes import create_vector_index, upsert_vector
 # Load environment variables
 load_dotenv()
 
-with open("tags_list.json", "r") as file:
-    TAGS = json.load(file)
 
 # Google Drive Authentication
 service = authenticate_google_drive()

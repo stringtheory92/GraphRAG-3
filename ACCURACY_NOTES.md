@@ -24,7 +24,7 @@
 
 # New Features to implement:
 
-- Tag retrieval - Fetch several bodies based on associated matching tags.
+- DONE: Tag retrieval - Fetch several bodies based on associated matching tags.
 
   - First: ai will generate tags for the users question based on tags list
   - Second: retrieval will retrieve top 2(?) text bodies based on number of tags that match
@@ -38,6 +38,18 @@
 
 - The questions currently do not take in context from the previous parts of the conversation. Extend to take in the full context of the conversation, and create a limit to the amount of conversation context it can have
 
-- Have responses less of a list and more natural, but still include all relevant information
+- DONE: Have responses less of a list and more natural, but still include all relevant information
 
 - additional layer of knowledge graph nodes for key figures mentioned in the carnivore community. Node can contain the name and body link for text information about the individual. Then the node can also be connected to different bodies of text based on if they are mentioned (need to figure that out). Should be included in tags for explicit queries about these individuals
+
+# Conversation Context
+
+### Dynamic Context
+
+- recent interaction buffer
+  -- Always include the last few interactions in the context window. This ensures that follow-up questions have the necessary background without needing to restate previous information.
+
+- context-aware tagging
+  -- when extracting tags from user question, consider the previous interactions to provide additional context. Ex: if the current user prompt lacks clear context, the tags from previous exchanges can help fill in the gaps.
+
+- dynamic context weighting (biased toward more recent interactions)
